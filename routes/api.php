@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Buyer\HomeController as BuyerHome;
+use App\Http\Controllers\Posts\HomeController as PostHome;
 use App\Http\Controllers\Seller\HomeController as SellerHome;
 use App\Http\Controllers\Cahsier\HomeController as CashierHome;
 use App\Http\Controllers\Admin\HomeController as AdminHome;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 // Auth 
 Route::post('authenticate', [AuthController::class, 'authenticate']);
 Route::post('login', [AuthController::class, 'LoginUser']);
-Route::get('logout', [AuthController::class, 'LogoutUser']);
+Route::get('logout', [AuthController::class, 'LogoutUser'])->middleware(['auth:api']);
 
 
 // Buyer
@@ -61,4 +62,10 @@ Route::prefix('admin')->controller(AdminHome::class)->group(function () {
     // Withdraw
     Route::get('list-withdraw', 'listWithdraw');
     Route::post('add-withdraw', 'storeWithdraw');
+});
+
+//posts
+Route::prefix('post')->controller(PostHome::class)->group(function () {
+    //add posts
+    Route::post('add-posts', 'StorePosts');
 });

@@ -51,7 +51,6 @@ class AuthController extends Controller
                 'message' => 'Gagal membuat token'
             ], 500);
         }
-        
         $token->save();
         
         return response()->json([
@@ -66,18 +65,11 @@ class AuthController extends Controller
     
     public function LogoutUser(Request $request){
         $user = $request->user();
-        if ($user) {
-            $user->currentAccessToken()->revoke();
-    
-            return response()->json([
-                'user' => $user,
-                'message' => 'Berhasil logout'
-            ]);
-        } else {
-            return response()->json([
-                'message' => 'Anda belum login'
-            ], 401);
-        }
+        $token = $request->user()->token()->revoke();
+        return response()->json([
+            'user' => $user,
+            'message' => 'Successfully logged out'
+        ]);
     }
     
 }

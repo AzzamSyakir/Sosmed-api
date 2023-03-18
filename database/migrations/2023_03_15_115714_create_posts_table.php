@@ -18,8 +18,8 @@ return new class extends Migration
             $table->id();
             $table->string("media");
             $table->string("caption");
-            $table->string("comments");
-            $table->foreignId('user_id')->on((new User)->getTable())->restrictOnDelete()->cascadeOnUpdate();
+            $table->string("comment");
+            $table->foreignId('user_id')->constrained()->cascadeOnUpdate();
             $table->timestamps();
         });
     }
