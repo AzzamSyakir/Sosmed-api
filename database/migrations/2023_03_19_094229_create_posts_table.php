@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->text('media');
             $table->text('caption');
-            $table->timestamps();
+            $table->timestamps(); 
             $table->foreignId('user_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
         });
         
