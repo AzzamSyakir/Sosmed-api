@@ -6,6 +6,7 @@ use App\Http\Controllers\Posts\HomeController as PostHome;
 use App\Http\Controllers\Seller\HomeController as SellerHome;
 use App\Http\Controllers\Cahsier\HomeController as CashierHome;
 use App\Http\Controllers\Admin\HomeController as AdminHome;
+use App\Http\Controllers\Comments\HomeController as CommentHome;
 use Illuminate\Support\Facades\Route;
 
 
@@ -45,7 +46,7 @@ Route::prefix('admin')->controller(AdminHome::class)->group(function () {
     // User
     Route::get('/', 'home');
     Route::get('list-user', 'listUser')->middleware(['auth:api']);
-    Route::post('add-user', 'storeUser');
+    Route::post('add-user', 'StoreUser');
     Route::patch('edit-user', 'updateUser');
     Route::post('delete-user/{user}', 'DeleteUser');
 
@@ -64,8 +65,15 @@ Route::prefix('admin')->controller(AdminHome::class)->group(function () {
     Route::post('add-withdraw', 'storeWithdraw');
 });
 
+//feed postingan
 //posts
 Route::prefix('post')->controller(PostHome::class)->group(function () {
     //add posts
-    Route::post('add-posts', 'StorePosts');
+    Route::post('add-posts', 'StorePosts')->middleware(['auth:api']);
 });
+//comments
+Route::prefix('comments')->controller(CommentHome::class)->group(function () {
+    //add posts
+    Route::post('add-comment/{postid}', 'StoreComment')->middleware(['auth:api']);
+});
+

@@ -11,12 +11,17 @@ class post extends Model
     protected $fillable = [
         'media',
         'caption',
-        'comment',
         'user_id',
+        'comments_id',
     ];
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 
 }

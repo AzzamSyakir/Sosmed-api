@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 
 class HomeController extends Controller
 {
-    public function storeUser(Request $request)
+    public function StoreUser(Request $request)
     {
         try {
             $data = $request->validate([

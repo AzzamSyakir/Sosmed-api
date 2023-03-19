@@ -13,27 +13,24 @@ class HomeController extends Controller
         public function StorePosts(Request $request)
         {
             try {
-                $data = $request->validate([
-                    'media' => 'required|mimes:jpeg,jpg,png', // validasi hanya untuk file gambar
-                    'caption' => 'required|string',
-                    'comment' => 'required|string',
-                    'user_id' => 'required|exists:users,id',
+                $validatedData = $request->validate([
+                    'media' => 'required|file|image|max:2048',
+                    'caption' => 'required|string|max:255',
                 ]);
-    
-                $path = $request->file('media')->store('public/media');
+        
+                $path = $validatedData['media']->store('public');
                 $url = Storage::url($path);
-    
-                $posts = Post::create([
-                    'media' => $url,
-                    'caption' => $data['caption'],
-                    'comment' => $data['comment'],
-                    'user_id' => $data['user_id'],
-                ]);
-    
+        
+                $post = new Post;
+                $post->media = $url;
+                $post->caption = $validatedData['caption'];
+                $post->user_id = auth()->user()->id;
+                $post->save();
+        
                 return response()->json([
-                    'message' => 'Berhasil buat posts',
-                    'data' => $posts,
-                ]);
+                    'message' => 'Post created successfully',
+                    'post' => $post
+                ], 201);
             } catch (\Throwable $th) {
                 return response()->json([
                     'message' => 'Gagal Tambah post',
