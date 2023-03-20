@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Comments;
 
 use App\Models\Post;
+use App\Models\User;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -39,4 +40,32 @@ class HomeController extends Controller
     }
 }
 
+    public function GetCommentByUser(Request $request)
+    {
+        try {
+            $user_id = $request->user()->id;
+            $user = User::find($user_id);
+
+            if (!$user) {
+                return response()->json([
+                    'message' => 'User tidak ditemukan'
+                ], 404);
+            }
+
+            $comments = $user->comments()->with('user')->distinct()->get();
+            return response()->json([
+                'user' => $user,
+                'comments' => $comments
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Gagal ambil comment',
+                'error' => $th->getMessage()
+            ], 500);
+        }
+    }
 }
+
+
+

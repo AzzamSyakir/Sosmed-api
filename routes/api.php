@@ -7,6 +7,7 @@ use App\Http\Controllers\Seller\HomeController as SellerHome;
 use App\Http\Controllers\Cahsier\HomeController as CashierHome;
 use App\Http\Controllers\Admin\HomeController as AdminHome;
 use App\Http\Controllers\Comments\HomeController as CommentHome;
+use App\Http\Controllers\Message\HomeController as MessageHome;
 use Illuminate\Support\Facades\Route;
 
 
@@ -70,10 +71,24 @@ Route::prefix('admin')->controller(AdminHome::class)->group(function () {
 Route::prefix('post')->controller(PostHome::class)->group(function () {
     //add posts
     Route::post('add-posts', 'StorePosts')->middleware(['auth:api']);
+    //getposts
+    Route::get('get-posts', 'GetPostbyUser')->middleware(['auth:api']);
+
 });
 //comments
 Route::prefix('comments')->controller(CommentHome::class)->group(function () {
-    //add posts
+    //add comments
     Route::post('add-comment/{postid}', 'StoreComment')->middleware(['auth:api']);
+    //get comment
+    Route::get('get-comment', 'GetCommentbyUser')->middleware(['auth:api']);
+
 });
 
+//chat fitur
+Route::prefix('message')->controller(MessageHome::class)->group(function () {
+    //add comments
+    Route::post('add-message', 'SendMessage')->middleware(['auth:api']);
+    //get comment
+    Route::get('get-message/{senderid}', 'getMessage')->middleware(['auth:api']);
+
+});
