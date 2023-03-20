@@ -20,16 +20,14 @@ class HomeController extends Controller
 
     // Enkripsi pesan jika is_encrypted bernilai true
     $encryptedMessage = $message;
-    if ($isEncrypted) {
-        $encryptedMessage = encrypt($message);
-    }
+    $encryptedMessage = encrypt($message);
 
     // Simpan pesan ke database
     $chat = new Chat([
         'sender_id' => $senderId,
         'receiver_id' => $receiverId,
         'message' => $encryptedMessage,
-        'is_encrypted' => $isEncrypted
+        'is_encrypted' => true
     ]);
 
     $chat->save();
