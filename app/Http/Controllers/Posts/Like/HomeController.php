@@ -13,31 +13,43 @@ class HomeController extends Controller
  //like posts
  public function LikePost($postId){
     try {
-
-
         $post = Post::findOrFail($postId);
-        if(!$post){
+
+        if (!$post) {
             return response()->json([
-                'message' => 'post tidak ditemukan',
-                'error' => $th->getMessage(),
-            ], 500);
+                'message' => 'Post tidak ditemukan',
+            ], 404);
         }
 
+        $userId = auth()->user()->id;
+
+        // Check if the user has already liked the post
+        $existingLike = $post->like()->where('user_id', $userId)->first();
+        if ($existingLike) {
+            $existingLike->delete(); // hapus catatan like yang sudah ada
+            return response()->json([
+                'message' => 'Anda sudah menyukai postingan ini sebelumnya, like sebelumnya telah dihapus.',
+            ], 200);
+        }
+        
+
+        // Create a new like record
         $like = new Like;
-        $like->user_id = auth()->user()->id;
+        $like->user_id = $userId;
 
         $post->like()->save($like);
 
         return response()->json([
-            'message' => 'like succesfully',
-            'comment' => $like
+            'message' => 'Berhasil menyukai postingan',
+            'like' => $like
         ], 201);
     } catch (\Throwable $th) {
         return response()->json([
-            'message' => 'Gagal Tambah like',
+            'message' => 'Gagal menyukai postingan',
             'error' => $th->getMessage(),
         ], 500);
     }
 }
+
       
 }
