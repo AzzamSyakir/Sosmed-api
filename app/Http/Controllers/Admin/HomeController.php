@@ -24,7 +24,7 @@ class HomeController extends Controller
             $user = User::create($data);
     
             return response()->json([
-                'message' => 'Berhasil register',
+                'message' => 'Berhasil tambah user',
                 'data' => $user,
             ]);
         } catch (\Throwable $th) {

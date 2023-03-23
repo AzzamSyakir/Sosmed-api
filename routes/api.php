@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 // Auth 
 Route::post('authenticate', [AuthController::class, 'authenticate']);
 Route::post('login', [AuthController::class, 'LoginUser']);
+Route::post('register', [AuthController::class, 'RegisterUser']);
 Route::get('logout', [AuthController::class, 'LogoutUser'])->middleware(['auth:api']);
 
 

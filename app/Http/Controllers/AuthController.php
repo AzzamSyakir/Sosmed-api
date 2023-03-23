@@ -71,5 +71,32 @@ class AuthController extends Controller
             'message' => 'Successfully logged out'
         ]);
     }
+    public function RegisterUser(Request $request)
+    {
+        try {
+            $data = $request->validate([
+                'username' => 'required|string',
+                'no_hp' => 'required|integer',
+                'email' => 'required|email',
+                'password' => ['required', 'string', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'],
+            ]);
+    
+            $data['password'] = Hash::make($data['password']);
+    
+            $user = User::create($data);
+    
+            return response()->json([
+                'message' => 'Berhasil register',
+                'data' => $user,
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Gagal Tambah user',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
+    
+
     
 }
