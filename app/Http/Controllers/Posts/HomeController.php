@@ -26,6 +26,7 @@ class HomeController extends Controller
                 $post->media = $url;
                 $post->caption = $validatedData['caption'];
                 $post->user_id = auth()->user()->id;
+                $post ->username = auth()->user()->username;
                 $post->save();
         
                 return response()->json([
@@ -72,7 +73,21 @@ public function getPostbyUser(Request $request)
         ], 500);
     }
 }
+public function getAllPosts()
+{
+    try {
+        $posts = Post::with('user:id')->select('id', 'user_id','media', 'caption', 'username')->get();
+        return response()->json([
+            'posts' => $posts
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'message' => 'Gagal mengambil data postingan dan id user-nya',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 
-        
+
 }
 

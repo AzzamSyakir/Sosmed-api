@@ -25,7 +25,7 @@ class HomeController extends Controller
         $comment = new Comment;
         $comment->comment = $validatedData['comment'];
         $comment->user_id = auth()->user()->id;
-
+        $comment ->username = auth()->user()->username;
         $post->comments()->save($comment);
 
         return response()->json([
@@ -65,6 +65,31 @@ class HomeController extends Controller
             ], 500);
         }
     }
+    public function GetAllComments(Request $request)
+{
+    try {
+        $comments = Comment::with('user')->get();
+        dd($comments);
+        $username = auth()->user()->username;
+
+
+        return response()->json([
+            'comments' => $comments,
+            'username' => $username
+        ]);
+        if($comment == null){
+            return response()->json([
+                'message' => 'belum ada komentar'        
+            ]);
+        }
+    } catch (\Throwable $th) {
+        return response()->json([
+            'message' => 'Gagal ambil comment',
+            'error' => $th->getMessage()
+        ], 500);
+    }
+}
+
 }
 
 

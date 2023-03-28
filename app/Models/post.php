@@ -12,6 +12,7 @@ class post extends Model
         'media',
         'caption',
         'user_id',
+        'username',
         'comments_id',
     ];
     public function user()
