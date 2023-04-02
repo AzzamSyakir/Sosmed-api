@@ -21,11 +21,16 @@ class HomeController extends Controller
         ]);
 
         $post = Post::findOrFail($postId);
-
         $comment = new Comment;
         $comment->comment = $validatedData['comment'];
-        $comment->user_id = auth()->user()->id;
-        $comment ->username = auth()->user()->username;
+        if(auth()->check()) {
+            $comment->user_id = auth()->user()->id;
+            $comment->username = auth()->user()->username;
+        } else {
+        return response()->json([
+            'message' => 'belum login',
+            ], 201);
+        }
         $post->comments()->save($comment);
 
         return response()->json([
@@ -40,48 +45,22 @@ class HomeController extends Controller
     }
 }
 
-    public function GetCommentByUser(Request $request)
-    {
-        try {
-            $user_id = $request->user()->id;
-            $user = User::find($user_id);
-
-            if (!$user) {
-                return response()->json([
-                    'message' => 'User tidak ditemukan'
-                ], 404);
-            }
-
-            $comments = $user->comments()->with('user')->distinct()->get();
-            return response()->json([
-                'user' => $user,
-                'comments' => $comments
-            ]);
-
-        } catch (\Throwable $th) {
-            return response()->json([
-                'message' => 'Gagal ambil comment',
-                'error' => $th->getMessage()
-            ], 500);
-        }
-    }
-    public function GetAllComments(Request $request)
+public function GetCommentByUser($postId)
 {
     try {
-        $comments = Comment::with('user')->get();
-        dd($comments);
-        $username = auth()->user()->username;
+        $post = Post::find($postId);
 
+        if (!$post) {
+            return response()->json([
+                'message' => 'Postingan tidak ditemukan'
+            ], 404);
+        }
+
+        $comments = Comment::where('post_id', $postId)->with('post')->get();
 
         return response()->json([
-            'comments' => $comments,
-            'username' => $username
+            'comments' => $comments
         ]);
-        if($comment == null){
-            return response()->json([
-                'message' => 'belum ada komentar'        
-            ]);
-        }
     } catch (\Throwable $th) {
         return response()->json([
             'message' => 'Gagal ambil comment',
@@ -89,6 +68,31 @@ class HomeController extends Controller
         ], 500);
     }
 }
+
+    public function GetAllComments(Request $request)
+    {
+        try {
+            $comments = Comment::with('user')->get();
+            $username = $comments->map(function($comment) {
+                return $comment->user->username;
+            })->toArray();
+            return response()->json([
+                'comments' => $comments,
+                'username' => $username
+            ]);
+            if($comment == null){
+                return response()->json([
+                    'message' => 'belum ada komentar'        
+                ]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Gagal ambil comment',
+                'error' => $th->getMessage()
+            ], 500);
+        }
+    }
+    
 
 }
 

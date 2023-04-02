@@ -58,14 +58,14 @@ Route::prefix('post')->group(function () {
     // get posts
     Route::get('get-posts', [PostHome::class, 'getPostByUser'])->middleware(['auth:api']);
     // get all posts
-    Route::get('getall-posts', [PostHome::class, 'getAllPosts']);
+    Route::get('getallposts', [PostHome::class, 'getAllPosts']);
     Route::prefix('comments')->group(function () {
         // add comments
-        Route::post('add-comment/{postid}', [CommentHome::class, 'storeComment']);
+        Route::post('add-comment/{postid}', [CommentHome::class, 'storeComment'])->middleware(['auth:api']);
         // get comments
-        Route::get('get-comment', [CommentHome::class, 'getCommentByUser']);
+        Route::get('get-comment/{userid}', [CommentHome::class, 'getCommentByUser']);
         //get all comment
-        Route::get('getall-comment', [CommentHome::class, 'GetAllComments']);
+        Route::get('getallcomment', [CommentHome::class, 'GetAllComments']);
 
     });
     Route::prefix('like')->group(function () {
