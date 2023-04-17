@@ -9,9 +9,15 @@ use App\Http\Controllers\Admin\HomeController as AdminHome;
 use App\Http\Controllers\Posts\Comments\HomeController as CommentHome;
 use App\Http\Controllers\Posts\Like\HomeController as LikeHome;
 use App\Http\Controllers\Message\HomeController as MessageHome;
+use App\Http\Controllers\ChangeAccount\HomeController as ChangeHome;
+use App\Http\Controllers\Friend\HomeController as FriendHome;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+Route::post('ChangeUser', [ChangeHome::class, 'changeUser'])->middleware(['auth:api']);
+Route::post('login', [AuthController::class, 'LoginUser']);
+Route::post('register', [AuthController::class, 'RegisterUser']);
+Route::get('logout', [AuthController::class, 'LogoutUser'])->middleware(['auth:api']);
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -42,7 +48,7 @@ Route::prefix('cashier')->group(function () {
 // Admin
 Route::prefix('admin')->group(function () {
     Route::get('/', [AdminHome::class, 'home']);
-    Route::get('list-user', [AdminHome::class, 'listUser'])->middleware(['auth:api']);
+    Route::get('list-user', [AdminHome::class, 'listUser']);
     Route::post('add-user', [AdminHome::class, 'storeUser']);
     Route::patch('edit-user', [AdminHome::class, 'updateUser']);
     Route::post('delete-user/{user}', [AdminHome::class, 'deleteUser']);
@@ -72,4 +78,18 @@ Route::prefix('post')->group(function () {
         // add like
         Route::post('add-like/{postid}', [LikeHome::class, 'LikePost']);
     });
+    
+});
+//message
+Route::prefix('message')->group(function () {
+    Route::get('get-message/{senderid}', [MessageHome::class, 'getMessage'])->middleware(['auth:api']);
+    Route::post('add-message', [MessageHome::class, 'SendMessage'])->middleware(['auth:api']);
+
+});
+//Friends
+Route::prefix('Friend')->group(function () {
+    Route::get('show-friend', [FriendHome::class, 'showFriends'])->middleware(['auth:api']);
+    Route::get('specific-friend/{friendid}', [FriendHome::class, 'SpecificFriends'])->middleware(['auth:api']);
+    Route::post('add-friend', [FriendHome::class, 'SendRequest'])->middleware(['auth:api']);
+    Route::post('friend-request', [FriendHome::class, 'RespondRequest'])->middleware(['auth:api']);
 });
