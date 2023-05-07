@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'no_hp',
+        'profile_picture'
     ];
 
     /**
@@ -48,80 +49,159 @@ class User extends Authenticatable
     {
         return $this->hasMany(Post::class);
     }
+    public function friend()
+    {
+        return $this->hasMany(Friendship::class);
+    }
 
     public function comments()
     {
         return $this->hasMany(Comment::class);
     }
     
-    public function hasSentFriendRequestTo(User $user)
+    public function hasSentFollowRequestTo(User $user)
     {
-        return $this->sendFriendRequestTo($user)->where('friend_id', $user->id)->exists();
+        return FollowRequest::where('receiver_id', $user->id)->exists();
     }
-    public function friends()
+    public function follower()
     {
-        return $this->hasMany(Friend::class);
+        return $this->hasMany(Follower::class)
+                    ->where('user_id', $this->id);
     }
-    public function acceptFriendRequest(User $user, $status)
-    {
-        $friendship = Friend::where('friend_id', $user->id)->update([
-            'status' => $status
-        ]);
-        if(!$friendship){
-            return false;
-        }
-        return true;
-    }
-    public function rejectFriendRequest(User $user)
-    {
-        $friendship = $this->friendRequests()->where('user_id', $user->id)->first();
-        dd($user->friendRequests());
-            if (!$friendship) {
-            return false;
-        }
-    
-        $friendship->delete();
-        $user->deleteFriendRequest($this);
-    
-        return true;
-    }
-    public function deleteFriendRequest(User $user)
-    {
-        $friendship = $this->friendRequests()->where('user_id', $user->id)->first();
-    
-        if (!$friendship) {
-            return false;
-        }
-    
-        $friendship->delete();
-    
-        return true;
-    }
-    public function sendFriendRequestTo(User $user)
+   
+    public function following()
 {
-    $friendRequest = new Friend([
-        'user_id' => $this->id,
-        'friend_id' => $user->id,
-        'status' => 'pending',
+    return $this->belongsToMany(User::class, 'follow_requests', 'sender_id', 'receiver_id')
+                ->where('status', 'accept')
+                ->withTimestamps();
+}
+public function posts()
+{
+    return $this->hasMany(Post::class);
+}
+
+
+    public function acceptFollowRequest(User $user_receiver, User $user_sender, $status)
+    {
+        $follower = Follower::where('follower_id', $user_sender->id)->first();
+        $followRequest = FollowRequest::where('receiver_id', $user_receiver->id)->where('sender_id', $user_sender->id)->first();
+    
+        if (!$followRequest) {
+            return response()->json(['message' => 'The follow request was not found'], 404);
+        }
+        $followRequest->status = $status;
+        $followRequest->save();
+    
+        $followerRequest = Follower::create([
+            'user_id' => $user_receiver->id,
+            'follower_id' => $user_sender->id
+        ]);
+    
+        if (!$followerRequest) {
+            return response()->json(['message' => 'Failed to create follower'], 500);
+        }
+    
+        $followerRequest->save();
+    
+        // Cek apakah kedua user saling mengikuti, jika ya maka tambahkan keduanya sebagai teman
+        $isFriend = $this->makeFriends($user_sender, $user_receiver);
+        if (!$isFriend) {
+            return response()->json(['message' => 'Failed to create friend'], 500);
+        }
+    
+        return response()->json(['message' => 'Follow request accepted successfully'], 200);
+    }
+    
+public function makeFriends(User $user1, User $user2)
+{
+    if(!$user1 || !$user2) {
+        return false; // Jika salah satu user null, maka langsung return false
+    }
+
+    $follower1 = Follower::where('user_id', $user1->id)->where('follower_id', $user2->id)->first();
+    $follower2 = Follower::where('user_id', $user2->id)->where('follower_id', $user1->id)->first();
+
+    if($follower1 && $follower2) {
+        $friend1 = Friendship::create([
+            'user_id' => $user1->id,
+            'friend_id' => $user2->id
+        ]);
+
+        $friend2 = Friendship::create([
+            'user_id' => $user2->id,
+            'friend_id' => $user1->id
+        ]);
+
+        if($friend1 && $friend2) {
+            $user1->friend()->save($friend1);
+            $user2->friend()->save($friend2);
+            return true;
+        }
+    }
+
+   return false;
+}
+
+
+    public function rejectFollowRequest(User $user)
+    {
+        $follower = $this->followRequests()->where('user_id', $user->id)->first();
+            if (!$follower) {
+            return false;
+        }
+    
+        $follower->delete();
+        $user->deletefollowRequest($this);
+    
+        return true;
+    }
+    public function deleteFollowRequest(User $user)
+    {
+        $follower = $this->followRequests()->where('user_id', $user->id)->first();
+    
+        if (!$follower) {
+            return false;
+        }
+    
+        $follower->delete();
+    
+        return true;
+    }
+    // respond to follow request 
+public function Follow(User $sender_id, User $receiver_id)
+{
+    $follower = new Follower([
+        'follower_id' => $sender_id->id,
+        'user_id' => $receiver_id->id,
     ]);
     
-    $friendRequest->save();
-    
-    return $friendRequest;
+    $follower->save();
+     // Cek apakah kedua user saling mengikuti, jika ya maka tambahkan keduanya sebagai teman
+     $isFriend = $this->makeFriends($sender_id, $receiver_id);
+     if (!$isFriend) {
+         return response()->json(['message' => 'Failed to create friend'], 500);
+     }
+    return $follower;
 }
-public function friendRequestsSent()
-{
-    return $this->belongsToMany(User::class, 'friend_requests', 'user_id', 'friend_id')
-        ->wherePivot('status', 'pending')
-        ->withPivot('status')
-        ->withTimestamps();
-}
-
 public function isFriendWith(User $user)
 {
-    return Friend::where('friend_id', $user->id)->
-    where('status', 'accept')->
-    exists();
+    $friendship = Friendship::where([
+        ['user_id', '=', $this->id],
+        ['friend_id', '=', $user->id]
+    ])->orWhere([
+        ['friend_id', '=', $this->id],
+        ['user_id', '=', $user->id]
+    ])->first();
+
+    return $friendship ? true : false;
 }
 
+public function conversations1()
+{
+    return $this->hasMany(Conversation::class, 'user_id_1');
+}
+public function conversations2()
+{
+    return $this->hasMany(Conversation::class, 'user_id_2');
+}
 }

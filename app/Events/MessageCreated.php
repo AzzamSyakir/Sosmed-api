@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
@@ -27,18 +26,31 @@ class MessageCreated implements ShouldBroadcast
      *
      * @return Channel|array
      */
+    
     public function broadcastOn()
     {
         return new Channel('messages');
     }
-
     /**
      * The event's broadcast name.
      *
      * @return string
      */
+
     public function broadcastAs()
     {
         return 'message.created';
+    }
+
+    /**
+     * Get the data to broadcast.
+     *
+     * @return array
+     */
+    public function broadcastWith()
+    {
+        return [
+            'message' => $this->message
+        ];
     }
 }

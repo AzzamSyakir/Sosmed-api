@@ -1,71 +1,25 @@
 <?php
 namespace App\Http\Controllers\Friend;
 
+use App\Models\Friendship;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Friend;
-use App\Models\FriendRequest;
+use App\Models\FollowRequest;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
-    public function sendRequest(Request $request)
+    //follow and followers
+    public function follow(Request $request)
     {
         $authUser = Auth::user();
-    
-        $friendId = $request->input('friend_id');
-        $friend = User::find($friendId);
-
-        if (!$friend) {
-            return response()->json(['error' => 'Friend not found.'], 404);
-        }
-    
-        if ($authUser->hasSentFriendRequestTo($friend)) {
-            return response()->json(['error' => 'Friend request already sent.'], 400);
-        }
-    
-        if ($authUser->id === $friend->id) {
-            return response()->json(['error' => 'You cannot send friend request to yourself.'], 400);
-        }
-    
-        $authUser->sendFriendRequestTo($friend);
-    
-        return response()->json(['success' => 'Friend request sent.'], 200);
-    }
-    
-    public function showFriends()
-    {
-        $user = Auth::user();
-        $friends = $user->friends;
-    
-        return response()->json(['friends' => $friends]);
-    }
-    public function SpecificFriends($friendId)
-    {
-        $user = Auth::user();
-        $friends = Friend::where('friend_id', $friendId)
-                         ->where('user_id', $user->id)
-                         ->get();
-
-        return response()->json(['friends' => $friends]);
-    }
-    public function respondRequest(Request $request)
-    {
-        $request->validate([
-            'friend_id' => 'required|exists:users,id',
-            'status' => 'required|in:accept,reject',
-        ]);
-    
-        if (Auth::check()) {
-            $authUser = Auth::user();
-        } else {
-            // handle the case where the user is not authenticated
-        }
+        $receiverId = $request->input('receiver_id');
     
         try {
-            $friend = User::findOrFail($request->friend_id);
+            $user = User::findOrFail($receiverId);
+            $authUser = User::find($authUser->id);
         } catch (ModelNotFoundException $e) {
             $message = 'user does not exist.';
             $status = 'failure';
@@ -75,33 +29,91 @@ class HomeController extends Controller
             ]);
         }
     
-        $friendRequest = Friend::where('friend_id', $authUser->id)
-        ->where('user_id', $request->friend_id)
-        ->first();
-        if($friendRequest == null){
-        return response()->json([
-            'message' => 'tidak ada request friend yang di temukan']);
+        if ($authUser->hasSentFollowRequestTo($user)) {
+            // Hapus follow request dari tabel follow_requests
+            FollowRequest::where('sender_id', $authUser->id)
+                ->where('receiver_id', $user->id)
+                ->delete();
+            
+            // Mengembalikan response
+            $message = 'berhasil unfollow';
+            $status = 'success';
+            return response()->json([
+                'message' => $message,
+                'status' => $status,
+            ]);
         }
-        if (!$friendRequest || $friendRequest->status != 'pending') {
-            $message = 'Friend request has already been accepted or rejected.';
+        
+    
+        if ($authUser->id === $user->id) {
+            return response()->json(['error' => 'You cannot follow yourself.'], 400);
+        }
+        $authUser->Follow($authUser, $user);
+    
+        return response()->json(['success' => "You are now following {$user->username}"], 200);
+    }
+    
+    public function ShowFollowers()
+    {
+        $user = Auth::user();
+        $followers = $user->follower;
+    
+        return response()->json(['followers' => $followers]);
+    }
+    public function RespondRequest(Request $request)
+    {
+        $request->validate([
+            'sender_id' => 'required|exists:users,id',
+            'status' => 'required|in:accept,reject',
+        ]);
+    
+        if (Auth::check()) {
+            $authUser = Auth::user();
+       } else {
+            // handle the case where the user is not authenticated
+        }    
+        try {
+            $user = User::findOrFail($request->sender_id);
+            $authUser = User::find($authUser->id);
+        } catch (ModelNotFoundException $e) {
+            $message = 'user does not exist.';
+            $status = 'failure';
+            return response()->json([
+                'message' => $message,
+                'status' => $status,
+            ]);
+        }
+
+        $FollowRequest = FollowRequest::where('receiver_id', $authUser->id)
+        ->where('sender_id', $request->sender_id)
+        ->first();
+    
+        if($FollowRequest == null){
+            return response()->json([
+                'message' => 'tidak ada request follow yang di temukan'
+            ]);
+        }
+    
+        if (!$FollowRequest || $FollowRequest->status != 'pending') {
+            $message = 'follow request has already been accepted or rejected.';
             $status = 'failure';
         } else {
             if ($request->status == 'accept') {
-                $friendship = $friend->acceptFriendRequest($authUser, $request->status);
+                $friendship = $authUser->acceptFollowRequest($authUser,$user,$request->status);
                 if ($friendship) {
-                    $message = 'Friend request has been accepted.';
+                    $message = 'follow request has been accepted.';
                     $status = 'success';
                 } else {
-                    $message = 'Failed to accept friend request. The friend request may have been accepted or rejected already.';
+                    $message = 'Failed to accept follow request. The follow request may have been accepted or rejected already.';
                     $status = 'failure';
                 }
             } elseif ($request->status == 'reject') {
-                $result = $authUser->rejectFriendRequest($friend);
+                $result = $authUser->rejectFollowRequest($user);
                 if ($result) {
-                    $message = 'Friend request has been rejected.';
+                    $message = 'follow request has been rejected.';
                     $status = 'success';
                 } else {
-                    $message = 'Failed to reject friend request. The friend request may have been accepted or rejected already.';
+                    $message = 'Failed to reject follow request. The follow request may have been accepted or rejected already.';
                     $status = 'failure';
                 }
             } else {

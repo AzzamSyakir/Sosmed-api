@@ -5,7 +5,7 @@ use App\Http\Controllers\Buyer\HomeController as BuyerHome;
 use App\Http\Controllers\Posts\HomeController as PostHome;
 use App\Http\Controllers\Seller\HomeController as SellerHome;
 use App\Http\Controllers\Cashier\HomeController as CashierHome;
-use App\Http\Controllers\Admin\HomeController as AdminHome;
+use App\Http\Controllers\Users\HomeController as UsersHome;
 use App\Http\Controllers\Posts\Comments\HomeController as CommentHome;
 use App\Http\Controllers\Posts\Like\HomeController as LikeHome;
 use App\Http\Controllers\Message\HomeController as MessageHome;
@@ -45,18 +45,14 @@ Route::prefix('cashier')->group(function () {
     Route::post('topup', [CashierHome::class, 'store']);
 });
 
-// Admin
-Route::prefix('admin')->group(function () {
-    Route::get('/', [AdminHome::class, 'home']);
-    Route::get('list-user', [AdminHome::class, 'listUser']);
-    Route::post('add-user', [AdminHome::class, 'storeUser']);
-    Route::patch('edit-user', [AdminHome::class, 'updateUser']);
-    Route::post('delete-user/{user}', [AdminHome::class, 'deleteUser']);
-    Route::get('list-transaction', [AdminHome::class, 'listTransaction']);
-    Route::get('list-topup', [AdminHome::class, 'listTopup']);
-    Route::post('add-topup', [AdminHome::class, 'storeTopup']);
-    Route::get('list-withdraw', [AdminHome::class, 'listWithdraw']);
-    Route::post('add-withdraw', [AdminHome::class, 'storeWithdraw']);
+// users
+Route::prefix('user')->group(function () {
+    Route::get('/', [UsersHome::class, 'home']);
+    Route::get('list-user', [UsersHome::class, 'listUser']);
+    Route::get('searchUser/{username}', [UsersHome::class, 'SearchUserbyName']);
+    Route::get('UserProfile/{username}', [UsersHome::class, 'userProfile']);
+    Route::patch('edit-user', [UsersHome::class, 'updateUser']);
+    Route::post('delete-user/{user}', [UsersHome::class, 'deleteUser']);
 });
 Route::prefix('post')->group(function () {
     // add posts
@@ -84,12 +80,10 @@ Route::prefix('post')->group(function () {
 Route::prefix('message')->group(function () {
     Route::get('get-message/{senderid}', [MessageHome::class, 'getMessage'])->middleware(['auth:api']);
     Route::post('add-message', [MessageHome::class, 'SendMessage'])->middleware(['auth:api']);
-
 });
-//Friends
-Route::prefix('Friend')->group(function () {
-    Route::get('show-friend', [FriendHome::class, 'showFriends'])->middleware(['auth:api']);
-    Route::get('specific-friend/{friendid}', [FriendHome::class, 'SpecificFriends'])->middleware(['auth:api']);
-    Route::post('add-friend', [FriendHome::class, 'SendRequest'])->middleware(['auth:api']);
-    Route::post('friend-request', [FriendHome::class, 'RespondRequest'])->middleware(['auth:api']);
+//follow and followers
+Route::prefix('follow')->group(function () {
+    Route::get('show-followers', [FriendHome::class, 'showFriends'])->middleware(['auth:api']);
+    Route::post('follow', [FriendHome::class, 'Follow'])->middleware(['auth:api']);
+    Route::post('follow-request', [FriendHome::class, 'RespondRequest'])->middleware(['auth:api']);
 });

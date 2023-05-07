@@ -1,0 +1,84 @@
+' @startuml chat 
+' left to right direction
+' actor User
+' User -> (Start a chat): initiate chat
+' User -> (Send message): send message
+' User -> (Read message): read message
+' User -> (Delete message): delete message
+' (Start a chat) --> (Send message)
+' (Send message) --> (Read message)
+' (Read message) --> (Delete message)
+' @enduml
+@startuml chat sequence diagram
+actor User
+participant "Front-end" as FE
+participant "Back-end" as BE
+participant Pusher
+User -> FE: Open a chat
+FE -> BE: Get messages
+BE -> Database: SELECT messages
+Database -> BE: messages
+BE -> FE: messages
+loop Sending message
+    User -> FE: Type a message
+    FE -> BE: Send message
+    BE -> Pusher: Publish message
+    Pusher -> BE: Confirm published
+    BE -> Database: INSERT message
+    Database -> BE: Confirmation
+    BE -> FE: Message sent
+end
+User -> FE: Read a message
+FE -> BE: Mark message as read
+BE -> Database: UPDATE message
+Database -> BE: Confirmation
+User -> FE: Delete a message
+FE -> BE: Delete message
+BE -> Database: DELETE message
+Database -> BE: Confirmation
+@enduml
+' @startuml erd
+
+' !define ENTITY <b><&minus;&minus; ENTITY &minus;&minus;></b>
+' !define TABLE <b><&minus;&minus; TABLE &minus;&minus;></b>
+' !define VIEW <b><&minus;&minus; VIEW &minus;&minus;></b>
+' !define COLUMN <font color="#5d8aa8"><i><&minus;&minus; COLUMN &minus;&minus;></i></font>
+
+' entity "User" as user <<ENTITY>> {
+'     + id [PK]
+'     --
+'     username
+'     name
+'     email
+'     password
+'     avatar
+'     last_login
+'     created_at
+'     updated_at
+' }
+
+' entity "Message" as message <<TABLE>> {
+'     + id [PK]
+'     --
+'     conversation_id [FK]
+'     sender_id [FK]
+'     receiver_id [FK]
+'     content
+'     created_at
+'     updated_at
+' }
+
+' entity "Conversation" as conversation <<TABLE>> {
+'     + id [PK]
+'     --
+'     subject
+'     created_at
+'     updated_at
+' }
+
+' user ||--|| conversation : participates in
+' conversation ||--|{ message : contains
+' user }o--|{ message : sends
+
+' @enduml
+

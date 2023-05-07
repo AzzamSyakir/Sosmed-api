@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers\Posts;
 use Illuminate\Support\Facades\Storage;
-
 use App\Models\Post;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 class HomeController extends Controller
@@ -40,12 +38,6 @@ class HomeController extends Controller
                 ], 500);
             }
         }
-        /**
- * Mengembalikan data pengguna dan semua postingannya
- *
- * @param  Request  $request
- * @return JsonResponse
- */
 public function getPostbyUser(Request $request)
 {
     try {

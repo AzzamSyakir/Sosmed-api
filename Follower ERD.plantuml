@@ -1,0 +1,18 @@
+@startuml Follow Request
+
+class User {
+    -id: integer
+    -name: string
+    -email: string
+}
+
+class FollowRequest {
+    -id: integer
+    -user_id: integer
+    -follower_id: integer
+    -status: string
+}
+
+User "1" --> "many" FollowRequest: has many
+
+@enduml
