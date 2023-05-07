@@ -3,16 +3,13 @@
 namespace App\Http\Controllers;
 
 
-use App\Models\admin;
-use App\Models\product;
+
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Permission;
 
 
 class AuthController extends Controller
@@ -71,7 +68,7 @@ class AuthController extends Controller
             'message' => 'Successfully logged out'
         ]);
     }
-    public function RegisterUser(Request $request)
+    public function RegisterUser (Request $request)
     {
         try {
             $data = $request->validate([
@@ -82,11 +79,20 @@ class AuthController extends Controller
             ]);
     
             $data['password'] = Hash::make($data['password']);
-    
+        
+        // tambahkan kode untuk menyimpan foto profil default
+        if (!$request->hasFile('photo')) {
+            $defaultPhotoPath = 'users-avatar/avatar.png';
+            $data['profile_picture'] = Storage::url($defaultPhotoPath);
+        } else {
+            // simpan gambar ke storage
+            $path = $request->file('photo')->store('public/users-avatar');
+            $data['profile_picture'] = Storage::url($path);
+        }
             $user = User::create($data);
-    
+
             return response()->json([
-                'message' => 'Berhasil register',
+                'message' => 'Berhasil tambah user',
                 'data' => $user,
             ]);
         } catch (\Throwable $th) {
@@ -96,7 +102,5 @@ class AuthController extends Controller
             ], 500);
         }
     }
-    
-
     
 }

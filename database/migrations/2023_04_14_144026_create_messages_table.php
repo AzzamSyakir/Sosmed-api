@@ -10,15 +10,20 @@ class CreateMessagesTable extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('from_id');
-            $table->unsignedBigInteger('to_id');
-            $table->text('content');
+            $table->boolean('encrypted')->default(false);
+            $table->unsignedBigInteger('sender_id');
+            $table->string('message_type');
+            $table->unsignedBigInteger('receiver_id');
+            $table->unsignedBigInteger('conversation_id');
+            $table->text('message');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
-
-            $table->foreign('from_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('to_id')->references('id')->on('users')->onDelete('cascade');
+        
+            $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('receiver_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('conversation_id')->references('id')->on('conversations')->onDelete('cascade');
         });
+        
     }
 
     public function down()

@@ -1,0 +1,37 @@
+@startuml Friend ERD
+
+class User {
+    +id: integer
+    +name: string
+    +username: string
+    +email: string
+    +password: string
+    +created_at: timestamp
+    +updated_at: timestamp
+}
+
+class FriendRequest {
+    +id: integer
+    +sender_id: integer
+    +receiver_id: integer
+    +status: string
+    +created_at: timestamp
+    +updated_at: timestamp
+}
+
+class Friendship {
+    +id: integer
+    +user_id: integer
+    +friend_id: integer
+    +created_at: timestamp
+    +updated_at: timestamp
+}
+
+User "1" -- "n" FriendRequest : sends
+User "1" -- "n" Friendship : has
+Friendship "1" -- "1" User : user
+Friendship "1" -- "1" User : friend
+FriendRequest "1" -- "1" User : sender
+FriendRequest "1" -- "1" User : receiver
+
+@enduml
